@@ -77,7 +77,7 @@ bool GetPlayer(int *pos, int array[][32], int times, char name[16], int Pnum){
   array[Pnum][times] = *pos;
 
   if (*pos >= END){
-    std::cout << name << " win!!" << '\n';
+    std::cout << name << " Lose..." << '\n';
     return true;
   }
 
@@ -104,7 +104,7 @@ bool GetAI(int *pos, int array[][32], int times, int dep){
   }
 
   //勝率が高い方を選択同率の場合は2を選択
-  if (one > two) {
+  if (one < two) {
     operate = 1;
   }else{
     operate = 2;
@@ -117,7 +117,7 @@ bool GetAI(int *pos, int array[][32], int times, int dep){
   std::cout << "AI selected " << operate << '\n';
 
   if (*pos >= END){
-    std::cout << "AI win!!" << '\n';
+    std::cout << "AI Lose..." << '\n';
     return true;
   }
 
