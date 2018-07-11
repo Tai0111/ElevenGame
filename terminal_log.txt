@@ -1,0 +1,91 @@
+jupiter:ElevenGame taichi$ ./elevengame
+##GameSetting##
+Please enter the name of Player 1
+>> taichi
+Please enter the name of Player 2
+>> sakamoto
+
+##GameStart##
+
+Now number is 0
+Please push number (1 or 2) taichi
+-> 2
+
+Now number is 2
+Please push number (1 or 2) sakamoto
+-> 2
+
+AI thiking now...
+AI selected 2
+
+##################
+taichi      ...  2
+sakamoto    ...  4
+AI          ...  6
+##################
+
+Now number is 6
+Please push number (1 or 2) taichi
+-> 1
+
+Now number is 7
+Please push number (1 or 2) sakamoto
+-> 1
+
+AI thiking now...
+AI selected 2
+
+######################
+taichi      ...  2,  7
+sakamoto    ...  4,  8
+AI          ...  6, 10
+######################
+
+Now number is 10
+Please push number (1 or 2) taichi
+-> 2
+
+Now number is 12
+Please push number (1 or 2) sakamoto
+-> 1
+
+AI thiking now...
+AI selected 1
+
+##########################
+taichi      ...  2,  7, 12
+sakamoto    ...  4,  8, 13
+AI          ...  6, 10, 14
+##########################
+
+Now number is 14
+Please push number (1 or 2) taichi
+-> 1
+
+Now number is 15
+Please push number (1 or 2) sakamoto
+-> 2
+
+AI thiking now...
+AI selected 1
+
+##############################
+taichi      ...  2,  7, 12, 15
+sakamoto    ...  4,  8, 13, 17
+AI          ...  6, 10, 14, 18
+##############################
+
+Now number is 18
+Please push number (1 or 2) taichi
+-> 2
+
+Now number is 20
+Please push number (1 or 2) sakamoto
+-> 2
+sakamoto win!!
+
+##################################
+taichi      ...  2,  7, 12, 15, 20
+sakamoto    ...  4,  8, 13, 17, 22
+AI          ...  6, 10, 14, 18, --
+##################################
