@@ -17,11 +17,11 @@ void GetMemory(int array[][32], int n, char P1[16], char P2[16]);
 
 int main(void){
 
-  int pos = 0;           //現状態
-  int times = 0;         //ターン数
-  int dep = 4;           //探索の深さ
-  int memory[3][32] = {};     //ゲームログ
-  char P1[16],P2[16];    //プレイヤー名
+  int pos = 0;              //現状態
+  int times = 0;            //ターン数
+  int dep = 4;              //探索の深さ
+  int memory[3][32] = {};   //ゲームログ
+  char P1[16],P2[16];       //プレイヤー名
 
   std::cout << "##GameSetting##" << '\n';
 
@@ -63,13 +63,23 @@ bool GetPlayer(int *pos, int array[][32], int times, char name[16], int Pnum){
   std::cout << '\n' << "Now number is " << *pos << '\n';
 
   while (1){
-    std::cout << "Please push number (1 or 2) " << name << '\n';
-    std::cout << "-> ";
-    std::cin >> choice;
-    if (choice == 1 || choice == 2) {
-      break;
+    if (*pos < END-1) {
+      std::cout << "Please push number (1 or 2) " << name << '\n';
+      std::cout << "-> ";
+      std::cin >> choice;
+      if (choice == 1 || choice == 2) {
+        break;
+      }
+      std::cout << "!! You can only enter 1 or 2 !!" << '\n';
+    }else if(*pos == END-1){
+      std::cout << "Please push number 1 " << name << '\n';
+      std::cout << "-> ";
+      std::cin >> choice;
+      if (choice == 1) {
+        break;
+      }
+      std::cout << "!! You can only enter 1 !!" << '\n';
     }
-    std::cout << "!! You can only enter 1 or 2 !!" << '\n';
   }
 
   //現状態を更新しログを保存
@@ -92,22 +102,28 @@ bool GetAI(int *pos, int array[][32], int times, int dep){
 
   std::cout << '\n' << "AI thiking now..." << '\n';
 
-  for (size_t i = 1; i < 3; i++) {
-    //AIが 1or2 を選んだ場合の勝ち数を計測
-    CNT = 0;
-    GetOperate(*pos+i, dep);
-    if (i == 1){
-      one = CNT;
-    }else if(i == 2){
-      two = CNT;
+  if (*pos < END-1) {
+    //負けが確定していなければ先読み
+    for (size_t i = 1; i < 3; i++) {
+      //AIが 1or2 を選んだ場合の勝ち数を計測
+      CNT = 0;
+      GetOperate(*pos+i, dep);
+      if (i == 1){
+        one = CNT;
+      }else if(i == 2){
+        two = CNT;
+      }
     }
-  }
 
-  //勝率が高い方を選択同率の場合は2を選択
-  if (one < two) {
+    //勝率が高い方を選択同率の場合は2を選択
+    if (one < two) {
+      operate = 1;
+    }else{
+      operate = 2;
+    }
+  }else if(*pos == END-1){
+    //負けが確定していたら1を選択
     operate = 1;
-  }else{
-    operate = 2;
   }
 
   //現状態を更新しログを保存
@@ -126,7 +142,6 @@ bool GetAI(int *pos, int array[][32], int times, int dep){
 
 //AIのオペレーター関数
 void GetOperate(int pos, int dep){
-
   //再帰を繰り返し指定の深さまできたら終了
   if (dep == 0) {
     return;
@@ -138,7 +153,7 @@ void GetOperate(int pos, int dep){
       if (pos + i == END) {
         return;
       }
-      GetOperate(pos+i,dep-1);
+      GetOperate(pos+i, dep-1);
     }
   }else{
     //depが奇数=AIのターン
@@ -148,10 +163,9 @@ void GetOperate(int pos, int dep){
         CNT++;
         return;
       }
-      GetOperate(pos+i,dep-1);
+      GetOperate(pos+i, dep-1);
     }
   }
-
 }
 
 //ゲームログの表示保存関数
@@ -166,11 +180,11 @@ void GetMemory(int array[][32], int n, char P1[16], char P2[16]){
   for (size_t i = 0; i < 3; i++) {
 
     if (i == 0) {
-      std::cout << std::left << std::setw(12) << P1 << "...";
+      std::cout << std::left << std::setw(10) << P1 << "...";
     }else if (i == 1){
-      std::cout << std::left << std::setw(12) << P2 << "...";
+      std::cout << std::left << std::setw(10) << P2 << "...";
     }else if (i == 2){
-      std::cout << std::left << std::setw(12) << "AI" << "...";
+      std::cout << std::left << std::setw(10) << "AI" << "...";
     }
 
     for (size_t j = 0; j < n+1; j++) {
