@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ios>
 #include <iomanip>
+#include <random>
 
 using namespace std;
 
@@ -18,10 +19,14 @@ void GetMemory(int array[][32], int n, char P1[16], char P2[16]);
 int main(void){
 
   int pos = 0;              //現状態
-  int times = 0;            //ターン数
+  int times = 0;            //プレイ数
+  int turn = 0;             //ターン数
   int dep = 4;              //探索の深さ
   int memory[3][32] = {};   //ゲームログ
   char P1[16],P2[16];       //プレイヤー名
+  //char name[3][32] = {};    //プレイヤー名の格納
+  int order;                //プレイ順序
+  bool terminal = false;    //終端判定
 
   std::cout << "##GameSetting##" << '\n';
 
@@ -30,28 +35,74 @@ int main(void){
   std::cout << "Please enter the name of Player 2" << '\n' << ">> ";
   std::cin >> P2;
 
+  std::cout << '\n' << "Decide the order of play at random" << '\n';
+  std::random_device rnd;     // 非決定的な乱数生成器を生成
+  std::mt19937 mt(rnd());     //  メルセンヌ・ツイスタの32ビット版、引数は初期シード値
+  std::uniform_int_distribution<> rand6(0, 5);        // [0, 5] 範囲の一様乱数
+  order = rand6(mt);
+
   std::cout << '\n' << "##GameStart##" << '\n';
 
   while (1){
 
-    //プレイヤー1
-    if ( GetPlayer(&pos, memory, times, P1, 0) ){
-      GetMemory(memory, times, P1, P2);
-      break;
+    if (order < 3) {
+      //プレイ順が昇順の場合
+      order++;
+      if (order > 2) {
+        order = 0;
+      }
+    }else if (order > 2) {
+      //プレイ順が降順の場合
+      order++;
+      if (order > 5) {
+        order = 3;
+      }
     }
-    //プレイヤー2
-    if ( GetPlayer(&pos, memory, times, P2, 1) ){
-      GetMemory(memory, times, P1, P2);
+
+    //プレイ順に関数を呼び出し
+    switch (order){
+      case 0:
+      case 5:
+      //プレイヤー1
+      if ( GetPlayer(&pos, memory, turn, P1, 0) ){
+        GetMemory(memory, turn, P1, P2);
+        terminal = true;
+      }
       break;
-    }
-    //AI
-    if ( GetAI(&pos, memory, times, dep) ){
-      GetMemory(memory, times, P1, P2);
+
+      case 1:
+      case 4:
+      //プレイヤー2
+      if ( GetPlayer(&pos, memory, turn, P2, 1) ){
+        GetMemory(memory, turn, P1, P2);
+        terminal = true;
+      }
+      break;
+
+      case 2:
+      case 3:
+      //AI
+      if ( GetAI(&pos, memory, turn, dep) ){
+        GetMemory(memory, turn, P1, P2);
+        terminal = true;
+      }
       break;
     }
 
-    GetMemory(memory, times, P1, P2);
+    //プレイ数を計測
     times++;
+    if (times == 3) {
+      //現在状態の表示
+      GetMemory(memory, turn, P1, P2);
+      //全員が1プレイし終わる度にtimesを初期化し，ターン数をカウント
+      times=0;
+      turn++;
+    }
+
+    //終端判定がonになっていればゲームを終了
+    if (terminal == true) {
+      break;
+    }
   }
 }
 
@@ -121,7 +172,7 @@ bool GetAI(int *pos, int array[][32], int times, int dep){
     }else{
       operate = 2;
     }
-  }else if(*pos == END-1){
+  }else{
     //負けが確定していたら1を選択
     operate = 1;
   }
@@ -136,7 +187,6 @@ bool GetAI(int *pos, int array[][32], int times, int dep){
     std::cout << "AI Lose..." << '\n';
     return true;
   }
-
   return false;
 }
 
