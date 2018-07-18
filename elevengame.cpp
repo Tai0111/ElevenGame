@@ -5,41 +5,128 @@
 
 using namespace std;
 
-#define END     22
 
 //グローバル変数
 int CNT;
 
 //プロトタイプ宣言
-bool GetPlayer(int *pos, int array[][32], int times, char name[16], int Pnum);
-bool GetAI(int *pos, int array[][32], int times, int dep);
-void GetOperate(int pos, int dep);
+bool GetPlayer(int *pos, int END, int array[][32], int times, char name[16], int Pnum);
+bool GetAI(int *pos, int END, int array[][32], int times, int dep);
+void GetOperate(int pos, int END, int dep);
 void GetMemory(int array[][32], int n, char P1[16], char P2[16]);
 
 int main(void){
 
   int pos = 0;              //現状態
+  int endPoint;             //ゲームの終点
+  int style;                //プレイ人数選択用
+  int level;                //レベル選択用
   int times = 0;            //プレイ数
   int turn = 0;             //ターン数
-  int dep = 4;              //探索の深さ
+  int dep;                  //探索の深さ
   int memory[3][32] = {};   //ゲームログ
   char P1[16],P2[16];       //プレイヤー名
-  //char name[3][32] = {};    //プレイヤー名の格納
+  char name[3][16];
   int order;                //プレイ順序
   bool terminal = false;    //終端判定
 
-  std::cout << "##GameSetting##" << '\n';
+  std::cout << '\n' << "##GameSetting##" << '\n';
 
-  std::cout << "Please enter the name of Player 1" << '\n' << ">> ";
-  std::cin >> P1;
-  std::cout << "Please enter the name of Player 2" << '\n' << ">> ";
-  std::cin >> P2;
+  //プレイ人数選択
+  std::cout << "Please select the number of players" << '\n';
+  std::cout << "1) Human : 0 | COM : 3 " << '\n';
+  std::cout << "2) Human : 1 | COM : 2 " << '\n';
+  std::cout << "3) Human : 2 | COM : 1 " << '\n';
+  std::cout << "4) Human : 3 | COM : 0 " << '\n';
+  while (1) {
+    std::cout << ">> ";
+    std::cin >> style;
+    if (style > 0 && style < 5) {
+      std::cout << '\n';
+      break;
+    }
+    std::cout << "!! Please choose a number from 1 to 4 !!" << '\n';
+  }
 
+  //プレーヤー名入力
+  for (size_t i = 1; i < style; i++) {
+    std::cout << "Please enter the name of Player " << i << '\n' << ">> ";
+    std::cin >> name[i-1];
+    std::cout << name[i-1] << '\n';
+  }
+
+  //ゲームの終了点の選択
+  std::cout << '\n' << "Please select the end point of the game" << '\n' << ">> ";
+  std::cin >> endPoint;
+
+  //COMのレベル選択
+  std::cout << '\n' << "Please choose the strength of the computer" << '\n';
+  std::cout << "1:weak | 2:mid | 3:strong " << '\n' << ">> ";
+  std::cin >> level;
+
+  if (level == 1) {
+    //1手先読み
+    dep = 2;
+  }else if (level == 2) {
+    //半手先読み
+    dep = endPoint/4;
+    //depが偶数になるよう調整
+    if (dep % 2 != 0) {
+      dep += 1;
+    }
+  }else if (level == 3) {
+    //全手先読み
+    dep = endPoint/2;
+    //depが偶数になるよう調整
+    if (dep % 2 != 0) {
+      dep += 1;
+    }
+  }
+
+  //プレイ順の選択
   std::cout << '\n' << "Decide the order of play at random" << '\n';
   std::random_device rnd;     // 非決定的な乱数生成器を生成
   std::mt19937 mt(rnd());     //  メルセンヌ・ツイスタの32ビット版、引数は初期シード値
   std::uniform_int_distribution<> rand6(0, 5);        // [0, 5] 範囲の一様乱数
   order = rand6(mt);
+
+  switch (order) {
+    case 0:
+    std::cout << "1st : " << name[1] << '\n';
+    std::cout << "2nd : " << name[2] << '\n';
+    std::cout << "3rd : " << name[0] << '\n';
+    break;
+
+    case 1:
+    std::cout << "1st : " << name[2] << '\n';
+    std::cout << "2nd : " << name[0] << '\n';
+    std::cout << "3rd : " << name[1] << '\n';
+    break;
+
+    case 2:
+    std::cout << "1st : " << name[0] << '\n';
+    std::cout << "2nd : " << name[1] << '\n';
+    std::cout << "3rd : " << name[2] << '\n';
+    break;
+
+    case 3:
+    std::cout << "1st : " << name[1] << '\n';
+    std::cout << "2nd : " << name[0] << '\n';
+    std::cout << "3rd : " << name[2] << '\n';
+    break;
+
+    case 4:
+    std::cout << "1st : " << name[0] << '\n';
+    std::cout << "2nd : " << name[2] << '\n';
+    std::cout << "3rd : " << name[1] << '\n';
+    break;
+
+    case 5:
+    std::cout << "1st : " << name[2] << '\n';
+    std::cout << "2nd : " << name[1] << '\n';
+    std::cout << "3rd : " << name[0] << '\n';
+    break;
+  }
 
   std::cout << '\n' << "##GameStart##" << '\n';
 
@@ -64,8 +151,7 @@ int main(void){
       case 0:
       case 5:
       //プレイヤー1
-      if ( GetPlayer(&pos, memory, turn, P1, 0) ){
-        GetMemory(memory, turn, P1, P2);
+      if ( GetPlayer(&pos, endPoint, memory, turn, P1, 0) ){
         terminal = true;
       }
       break;
@@ -73,8 +159,7 @@ int main(void){
       case 1:
       case 4:
       //プレイヤー2
-      if ( GetPlayer(&pos, memory, turn, P2, 1) ){
-        GetMemory(memory, turn, P1, P2);
+      if ( GetPlayer(&pos, endPoint, memory, turn, P2, 1) ){
         terminal = true;
       }
       break;
@@ -82,10 +167,15 @@ int main(void){
       case 2:
       case 3:
       //AI
-      if ( GetAI(&pos, memory, turn, dep) ){
-        GetMemory(memory, turn, P1, P2);
+      if ( GetAI(&pos, endPoint, memory, turn, dep) ){
         terminal = true;
       }
+      break;
+    }
+
+    //終端判定がonになっていればゲームを終了
+    if (terminal == true) {
+      GetMemory(memory, turn, P1, P2);
       break;
     }
 
@@ -98,16 +188,11 @@ int main(void){
       times=0;
       turn++;
     }
-
-    //終端判定がonになっていればゲームを終了
-    if (terminal == true) {
-      break;
-    }
   }
 }
 
 //プレイヤーの入力関数
-bool GetPlayer(int *pos, int array[][32], int times, char name[16], int Pnum){
+bool GetPlayer(int *pos, int END, int array[][32], int times, char name[16], int Pnum){
 
   int choice;
 
@@ -146,7 +231,7 @@ bool GetPlayer(int *pos, int array[][32], int times, char name[16], int Pnum){
 }
 
 //AIの選択関数
-bool GetAI(int *pos, int array[][32], int times, int dep){
+bool GetAI(int *pos, int END, int array[][32], int times, int dep){
 
   int one, two;
   int operate;
@@ -158,7 +243,7 @@ bool GetAI(int *pos, int array[][32], int times, int dep){
     for (size_t i = 1; i < 3; i++) {
       //AIが 1or2 を選んだ場合の勝ち数を計測
       CNT = 0;
-      GetOperate(*pos+i, dep);
+      GetOperate(*pos+i, END, dep);
       if (i == 1){
         one = CNT;
       }else if(i == 2){
@@ -191,7 +276,7 @@ bool GetAI(int *pos, int array[][32], int times, int dep){
 }
 
 //AIのオペレーター関数
-void GetOperate(int pos, int dep){
+void GetOperate(int pos, int END, int dep){
   //再帰を繰り返し指定の深さまできたら終了
   if (dep == 0) {
     return;
@@ -203,7 +288,7 @@ void GetOperate(int pos, int dep){
       if (pos + i == END) {
         return;
       }
-      GetOperate(pos+i, dep-1);
+      GetOperate(pos+i, END, dep-1);
     }
   }else{
     //depが奇数=AIのターン
@@ -213,7 +298,7 @@ void GetOperate(int pos, int dep){
         CNT++;
         return;
       }
-      GetOperate(pos+i, dep-1);
+      GetOperate(pos+i, END, dep-1);
     }
   }
 }
