@@ -197,7 +197,7 @@ int main(void){
     }
 
     //3番手
-    if (style > 3) {
+    if ((p+2)->Type == 0) {
       if ( GetPlayer(&pos, endPoint, memory, turn, member, 2) ){
         GetMemory(memory, turn, member);
         break;
@@ -280,9 +280,9 @@ bool GetAI(int *pos, int END, int array[][32], int times, MEMBER member[3], int 
     }
 
     //勝率が高い方を選択,同率の場合は2を選択
-    if (one < two) {
+    if (one > two) {
       operate = 1;
-    }else if (one > two){
+    }else if (one < two){
       operate = 2;
     }else{
       //どちらでも同じならランダムで決定
@@ -320,7 +320,7 @@ void GetOperate(int pos, int END, int dep){
     //depが偶数=人間のターン．
     for (size_t i = 2; i < 5; i++) {
       //posが終了点を超えていたら終了
-      if (pos + i >= END) {
+      if (pos + i >= END-2) {
         return;
       }
       GetOperate(pos+i, END, dep-1);
@@ -328,9 +328,9 @@ void GetOperate(int pos, int END, int dep){
   }else{
     //depが奇数=AIのターン
     for (size_t i = 1; i < 3; i++) {
-      if (pos + i >= END) {
+      if (pos + i >= END-2) {
         //終了点の数値があればグローバル変数CNTをインクリメント
-        if (pos + i == END) {
+        if (pos + i == END-2) {
           CNT++;
         }
         return;
