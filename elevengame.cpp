@@ -21,7 +21,7 @@ struct MEMBER{
 //プロトタイプ宣言
 bool GetPlayer(int *pos, int END, int array[][32], int times, MEMBER member[3], int Pnum);
 bool GetAI(int *pos, int END, int array[][32], int times, MEMBER member[3], int Pnum);
-void GetOperate(int pos, int END, int dep);
+void GetOperate(int pos, int END, int dep, int judgePos);
 void GetMemory(int array[][32], int n, MEMBER member[3]);
 
 int main(void){
@@ -260,6 +260,7 @@ bool GetAI(int *pos, int END, int array[][32], int times, MEMBER member[3], int 
 
   int one, two;
   int operate;
+  int judgePos;
   int dep = member[Pnum].Strength;
 
   std::cout << '\n' << member[Pnum].Name << " thiking now..." << '\n';
@@ -269,7 +270,12 @@ bool GetAI(int *pos, int END, int array[][32], int times, MEMBER member[3], int 
     for (size_t i = 1; i < 3; i++) {
       //AIが 1or2 を選んだ場合の勝ち数を計測
       CNT = 0;
-      GetOperate(*pos+i, END, dep);
+      if (*pos > END-4) {
+        judgePos = 0;
+      }else{
+        judgePos = 2;
+      }
+      GetOperate(*pos+i, END, dep, judgePos);
       if (i == 1){
         one = CNT;
         std::cout << "one = " << one << '\n';
@@ -279,17 +285,32 @@ bool GetAI(int *pos, int END, int array[][32], int times, MEMBER member[3], int 
       }
     }
 
-    //勝率が高い方を選択,同率の場合は2を選択
-    if (one > two) {
-      operate = 1;
-    }else if (one < two){
-      operate = 2;
+    if (*pos > END-4) {
+      //負率が低い方を選択
+      if (one < two) {
+        operate = 1;
+      }else if (one > two){
+        operate = 2;
+      }else{
+        //どちらでも同じならランダムで決定
+        std::random_device rnd;     // 非決定的な乱数生成器を生成
+        std::mt19937 mt(rnd());     //  メルセンヌ・ツイスタの32ビット版、引数は初期シード値
+        std::uniform_int_distribution<> rand2(1, 2);        // [1, 2] 範囲の一様乱数
+        operate = rand2(mt);
+      }
     }else{
-      //どちらでも同じならランダムで決定
-      std::random_device rnd;     // 非決定的な乱数生成器を生成
-      std::mt19937 mt(rnd());     //  メルセンヌ・ツイスタの32ビット版、引数は初期シード値
-      std::uniform_int_distribution<> rand2(1, 2);        // [1, 2] 範囲の一様乱数
-      operate = rand2(mt);
+      //勝率が高い方を選択
+      if (one > two) {
+        operate = 1;
+      }else if (one < two){
+        operate = 2;
+      }else{
+        //どちらでも同じならランダムで決定
+        std::random_device rnd;     // 非決定的な乱数生成器を生成
+        std::mt19937 mt(rnd());     //  メルセンヌ・ツイスタの32ビット版、引数は初期シード値
+        std::uniform_int_distribution<> rand2(1, 2);        // [1, 2] 範囲の一様乱数
+        operate = rand2(mt);
+      }
     }
   }else{
     //負けが確定していたら1を選択
@@ -310,7 +331,7 @@ bool GetAI(int *pos, int END, int array[][32], int times, MEMBER member[3], int 
 }
 
 //AIのオペレーター関数
-void GetOperate(int pos, int END, int dep){
+void GetOperate(int pos, int END, int dep, int judgePos){
   //再帰を繰り返し指定の深さまできたら終了
   if (dep == 0) {
     return;
@@ -320,22 +341,22 @@ void GetOperate(int pos, int END, int dep){
     //depが偶数=人間のターン．
     for (size_t i = 2; i < 5; i++) {
       //posが終了点を超えていたら終了
-      if (pos + i >= END-2) {
+      if (pos + i >= END-judgePos) {
         return;
       }
-      GetOperate(pos+i, END, dep-1);
+      GetOperate(pos+i, END, dep-1, judgePos);
     }
   }else{
     //depが奇数=AIのターン
     for (size_t i = 1; i < 3; i++) {
-      if (pos + i >= END-2) {
+      if (pos + i >= END-judgePos) {
         //終了点の数値があればグローバル変数CNTをインクリメント
-        if (pos + i == END-2) {
+        if (pos + i == END-judgePos) {
           CNT++;
         }
         return;
       }
-      GetOperate(pos+i, END, dep-1);
+      GetOperate(pos+i, END, dep-1, judgePos);
     }
   }
 }
