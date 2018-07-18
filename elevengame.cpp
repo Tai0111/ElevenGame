@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <string.h>
 #include <ios>
 #include <iomanip>
 #include <random>
@@ -22,13 +23,12 @@ int main(void){
   int endPoint;             //ゲームの終点
   int style;                //プレイ人数選択用
   int level;                //レベル選択用
-  int times = 0;            //プレイ数
   int turn = 0;             //ターン数
-  int dep[3] = {};               //探索の深さ
+  int dep[3];               //探索の深さ
   int memory[3][32] = {};   //ゲームログ
-  char name[3][16] = {};    //プレイヤー名
+  char name[3][16];         //プレイヤー名(入れ替えように１つ多く用意)
+  char tmp[16];             //プレイヤー名入れ替え用
   int order;                //プレイ順序
-  bool terminal = false;    //終端判定
 
   std::cout << '\n' << "##GameSetting##" << '\n';
 
@@ -57,7 +57,6 @@ int main(void){
   for (size_t i = style; i < 4; i++) {
     std::cout << "Please enter the name of COM_" << i-(style-1) << '\n' << ">> ";
     std::cin >> name[i-1];
-    std::cout << name[i-1] << '\n';
   }
 
   //ゲームの終了点の選択
@@ -66,11 +65,15 @@ int main(void){
 
   //COMのレベル選択
   for (size_t i = style; i < 4; i++) {
-
-    std::cout << '\n' << "Please choose the strength of the " << name[i-1] << '\n';
-    std::cout << "1:weak | 2:mid | 3:strong " << '\n' << ">> ";
-    std::cin >> level;
-
+    while (1) {
+      std::cout << '\n' << "Please choose the strength of the " << name[i-1] << '\n';
+      std::cout << "1:weak | 2:mid | 3:strong " << '\n' << ">> ";
+      std::cin >> level;
+      if (level > 0 && level <4) {
+        break;
+      }
+      std::cout << "!! Please choose a number from 1 to 3 !!" << '\n';
+    }
     if (level == 1) {
       //1手先読み
       dep[i-style] = 2;
@@ -98,125 +101,107 @@ int main(void){
   std::uniform_int_distribution<> rand6(0, 5);        // [0, 5] 範囲の一様乱数
   order = rand6(mt);
 
-  //プレイ順の表示
+  //プレイ順に配列を入れ替え
   switch (order) {
     case 0:
-    std::cout << "1st : " << name[1] << '\n';
-    std::cout << "2nd : " << name[2] << '\n';
-    std::cout << "3rd : " << name[0] << '\n';
+    //0->1->2
     break;
 
     case 1:
-    std::cout << "1st : " << name[2] << '\n';
-    std::cout << "2nd : " << name[0] << '\n';
-    std::cout << "3rd : " << name[1] << '\n';
+    //1->2->0
+    strcpy(tmp, name[0]);
+    strcpy(name[0], name[1]);
+    strcpy(name[1], tmp);
+    strcpy(tmp, name[1]);
+    strcpy(name[1], name[2]);
+    strcpy(name[2], tmp);
     break;
 
     case 2:
-    std::cout << "1st : " << name[0] << '\n';
-    std::cout << "2nd : " << name[1] << '\n';
-    std::cout << "3rd : " << name[2] << '\n';
+    //2->0->1
+    strcpy(tmp, name[0]);
+    strcpy(name[0], name[1]);
+    strcpy(name[1], tmp);
+    strcpy(tmp, name[0]);
+    strcpy(name[0], name[2]);
+    strcpy(name[2], tmp);
     break;
 
     case 3:
-    std::cout << "1st : " << name[1] << '\n';
-    std::cout << "2nd : " << name[0] << '\n';
-    std::cout << "3rd : " << name[2] << '\n';
+    //1->0->2
+    strcpy(tmp, name[0]);
+    strcpy(name[0], name[1]);
+    strcpy(name[1], tmp);
     break;
 
     case 4:
-    std::cout << "1st : " << name[0] << '\n';
-    std::cout << "2nd : " << name[2] << '\n';
-    std::cout << "3rd : " << name[1] << '\n';
+    //0->2->1
+    strcpy(tmp, name[1]);
+    strcpy(name[1], name[2]);
+    strcpy(name[2], tmp);
     break;
 
     case 5:
-    std::cout << "1st : " << name[2] << '\n';
-    std::cout << "2nd : " << name[1] << '\n';
-    std::cout << "3rd : " << name[0] << '\n';
+    //2->1->0
+    strcpy(tmp, name[0]);
+    strcpy(name[0], name[2]);
+    strcpy(name[2], tmp);
     break;
+
   }
+  //プレイ順の表示
+  std::cout << "1st : " << name[0] << '\n';
+  std::cout << "2nd : " << name[1] << '\n';
+  std::cout << "3rd : " << name[2] << '\n';
 
   std::cout << '\n' << "##GameStart##" << '\n';
 
   //メインループ開始
   while (1){
-
-    if (order < 3) {
-      //プレイ順が昇順の場合
-      order++;
-      if (order > 2) {
-        order = 0;
+    //プレイヤー1
+    if (style > 1) {
+      if ( GetPlayer(&pos, endPoint, memory, turn, name, 0) ){
+        GetMemory(memory, turn, name);
+        break;
       }
-    }else if (order > 2) {
-      //プレイ順が降順の場合
-      order++;
-      if (order > 5) {
-        order = 3;
+    }else{
+      if ( GetAI(&pos, endPoint, memory, turn, name, dep, 0) ){
+        GetMemory(memory, turn, name);
+        break;
       }
     }
 
-    //プレイ順に関数を呼び出し
-    switch (order){
-      case 0:
-      case 5:
-      //プレイヤー1
-      if (style > 1) {
-        if ( GetPlayer(&pos, endPoint, memory, turn, name, 0) ){
-          terminal = true;
-        }
-      }else{
-        if ( GetAI(&pos, endPoint, memory, turn, name, dep, 0) ){
-          terminal = true;
-        }
+    //プレイヤー2
+    if (style > 2) {
+      if ( GetPlayer(&pos, endPoint, memory, turn, name, 1) ){
+        GetMemory(memory, turn, name);
+        break;
       }
-      break;
-
-      case 1:
-      case 4:
-      //プレイヤー2
-      if (style > 2) {
-        if ( GetPlayer(&pos, endPoint, memory, turn, name, 1) ){
-          terminal = true;
-        }
-      }else{
-        if ( GetAI(&pos, endPoint, memory, turn, name, dep, 1) ){
-          terminal = true;
-        }
+    }else{
+      if ( GetAI(&pos, endPoint, memory, turn, name, dep, 1) ){
+        GetMemory(memory, turn, name);
+        break;
       }
-      break;
-
-      case 2:
-      case 3:
-      //プレイヤー3
-      if (style > 3) {
-        if ( GetPlayer(&pos, endPoint, memory, turn, name, 2) ){
-          terminal = true;
-        }
-      }else{
-        if ( GetAI(&pos, endPoint, memory, turn, name, dep, 2) ){
-          terminal = true;
-        }
-      }
-      break;
     }
 
-    //終端判定がonになっていればゲームを終了
-    if (terminal == true) {
-      GetMemory(memory, turn, name);
-      break;
+    //プレイヤー3
+    if (style > 3) {
+      if ( GetPlayer(&pos, endPoint, memory, turn, name, 2) ){
+        GetMemory(memory, turn, name);
+        break;
+      }
+    }else{
+      if ( GetAI(&pos, endPoint, memory, turn, name, dep, 2) ){
+        GetMemory(memory, turn, name);
+        break;
+      }
     }
 
-    //プレイ数を計測
-    times++;
-    if (times == 3) {
-      //現在状態の表示
-      GetMemory(memory, turn, name);
-      //全員が1プレイし終わる度にtimesを初期化し，ターン数をカウント
-      times=0;
-      turn++;
-    }
+    //現在状態の表示
+    GetMemory(memory, turn, name);
+    turn++;
   }
+  return 0;
 }
 
 //プレイヤーの入力関数
@@ -320,7 +305,8 @@ void GetOperate(int pos, int END, int dep){
   if (dep % 2 == 0) {
     //depが偶数=人間のターン．
     for (size_t i = 2; i < 5; i++) {
-      if (pos + i == END) {
+      //posが終了点を超えていたら終了
+      if (pos + i >= END) {
         return;
       }
       GetOperate(pos+i, END, dep-1);
@@ -328,9 +314,11 @@ void GetOperate(int pos, int END, int dep){
   }else{
     //depが奇数=AIのターン
     for (size_t i = 1; i < 3; i++) {
-      if (pos + i == END) {
+      if (pos + i >= END) {
         //終了点の数値があればグローバル変数CNTをインクリメント
-        CNT++;
+        if (pos + i == END) {
+          CNT++;
+        }
         return;
       }
       GetOperate(pos+i, END, dep-1);
