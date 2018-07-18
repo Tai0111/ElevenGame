@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <ios>
 #include <iomanip>
 #include <random>
@@ -10,10 +11,10 @@ using namespace std;
 int CNT;
 
 //プロトタイプ宣言
-bool GetPlayer(int *pos, int END, int array[][32], int times, char name[16], int Pnum);
-bool GetAI(int *pos, int END, int array[][32], int times, int dep);
+bool GetPlayer(int *pos, int END, int array[][32], int times, char name[][16], int Pnum);
+bool GetAI(int *pos, int END, int array[][32], int times, char name[][16], int depth[3], int Pnum);
 void GetOperate(int pos, int END, int dep);
-void GetMemory(int array[][32], int n, char P1[16], char P2[16]);
+void GetMemory(int array[][32], int n, char name[][16]);
 
 int main(void){
 
@@ -23,10 +24,9 @@ int main(void){
   int level;                //レベル選択用
   int times = 0;            //プレイ数
   int turn = 0;             //ターン数
-  int dep;                  //探索の深さ
+  int dep[3] = {};               //探索の深さ
   int memory[3][32] = {};   //ゲームログ
-  char P1[16],P2[16];       //プレイヤー名
-  char name[3][16];
+  char name[3][16] = {};    //プレイヤー名
   int order;                //プレイ順序
   bool terminal = false;    //終端判定
 
@@ -50,9 +50,13 @@ int main(void){
 
   //プレーヤー名入力
   for (size_t i = 1; i < style; i++) {
-    std::cout << "Please enter the name of Player " << i << '\n' << ">> ";
+    std::cout << "Please enter the name of Player_" << i << '\n' << ">> ";
     std::cin >> name[i-1];
-    std::cout << name[i-1] << '\n';
+  }
+  //COM名入力
+  for (size_t i = style; i < 4; i++) {
+    std::cout << "Please enter the name of COM_" << i-(style-1) << '\n' << ">> ";
+    std::cin >> name[i-1];
   }
 
   //ゲームの終了点の選択
@@ -60,26 +64,29 @@ int main(void){
   std::cin >> endPoint;
 
   //COMのレベル選択
-  std::cout << '\n' << "Please choose the strength of the computer" << '\n';
-  std::cout << "1:weak | 2:mid | 3:strong " << '\n' << ">> ";
-  std::cin >> level;
+  for (size_t i = style; i < 4; i++) {
 
-  if (level == 1) {
-    //1手先読み
-    dep = 2;
-  }else if (level == 2) {
-    //半手先読み
-    dep = endPoint/4;
-    //depが偶数になるよう調整
-    if (dep % 2 != 0) {
-      dep += 1;
-    }
-  }else if (level == 3) {
-    //全手先読み
-    dep = endPoint/2;
-    //depが偶数になるよう調整
-    if (dep % 2 != 0) {
-      dep += 1;
+    std::cout << '\n' << "Please choose the strength of the COM_" << i-(style-1) << '\n';
+    std::cout << "1:weak | 2:mid | 3:strong " << '\n' << ">> ";
+    std::cin >> level;
+
+    if (level == 1) {
+      //1手先読み
+      dep[i-style] = 2;
+    }else if (level == 2) {
+      //半手先読み
+      dep[i-style] = endPoint/4;
+      //depが偶数になるよう調整
+      if (dep[i-style] % 2 != 0) {
+        dep[i-style] += 1;
+      }
+    }else if (level == 3) {
+      //全手先読み
+      dep[i-style] = endPoint/2;
+      //depが偶数になるよう調整
+      if (dep[i-style] % 2 != 0) {
+        dep[i-style] += 1;
+      }
     }
   }
 
@@ -90,6 +97,7 @@ int main(void){
   std::uniform_int_distribution<> rand6(0, 5);        // [0, 5] 範囲の一様乱数
   order = rand6(mt);
 
+  //プレイ順の表示
   switch (order) {
     case 0:
     std::cout << "1st : " << name[1] << '\n';
@@ -130,6 +138,7 @@ int main(void){
 
   std::cout << '\n' << "##GameStart##" << '\n';
 
+  //メインループ開始
   while (1){
 
     if (order < 3) {
@@ -151,31 +160,49 @@ int main(void){
       case 0:
       case 5:
       //プレイヤー1
-      if ( GetPlayer(&pos, endPoint, memory, turn, P1, 0) ){
-        terminal = true;
+      if (style > 1) {
+        if ( GetPlayer(&pos, endPoint, memory, turn, name, 0) ){
+          terminal = true;
+        }
+      }else{
+        if ( GetAI(&pos, endPoint, memory, turn, name, dep, 0) ){
+          terminal = true;
+        }
       }
       break;
 
       case 1:
       case 4:
       //プレイヤー2
-      if ( GetPlayer(&pos, endPoint, memory, turn, P2, 1) ){
-        terminal = true;
+      if (style > 2) {
+        if ( GetPlayer(&pos, endPoint, memory, turn, name, 1) ){
+          terminal = true;
+        }
+      }else{
+        if ( GetAI(&pos, endPoint, memory, turn, name, dep, 1) ){
+          terminal = true;
+        }
       }
       break;
 
       case 2:
       case 3:
-      //AI
-      if ( GetAI(&pos, endPoint, memory, turn, dep) ){
-        terminal = true;
+      //プレイヤー3
+      if (style > 3) {
+        if ( GetPlayer(&pos, endPoint, memory, turn, name, 2) ){
+          terminal = true;
+        }
+      }else{
+        if ( GetAI(&pos, endPoint, memory, turn, name, dep, 2) ){
+          terminal = true;
+        }
       }
       break;
     }
 
     //終端判定がonになっていればゲームを終了
     if (terminal == true) {
-      GetMemory(memory, turn, P1, P2);
+      GetMemory(memory, turn, name);
       break;
     }
 
@@ -183,7 +210,7 @@ int main(void){
     times++;
     if (times == 3) {
       //現在状態の表示
-      GetMemory(memory, turn, P1, P2);
+      GetMemory(memory, turn, name);
       //全員が1プレイし終わる度にtimesを初期化し，ターン数をカウント
       times=0;
       turn++;
@@ -192,7 +219,7 @@ int main(void){
 }
 
 //プレイヤーの入力関数
-bool GetPlayer(int *pos, int END, int array[][32], int times, char name[16], int Pnum){
+bool GetPlayer(int *pos, int END, int array[][32], int times, char name[][16], int Pnum){
 
   int choice;
 
@@ -200,7 +227,7 @@ bool GetPlayer(int *pos, int END, int array[][32], int times, char name[16], int
 
   while (1){
     if (*pos < END-1) {
-      std::cout << "Please push number (1 or 2) " << name << '\n';
+      std::cout << "Please push number (1 or 2) " << name[Pnum] << '\n';
       std::cout << "-> ";
       std::cin >> choice;
       if (choice == 1 || choice == 2) {
@@ -208,7 +235,7 @@ bool GetPlayer(int *pos, int END, int array[][32], int times, char name[16], int
       }
       std::cout << "!! You can only enter 1 or 2 !!" << '\n';
     }else if(*pos == END-1){
-      std::cout << "Please push number 1 " << name << '\n';
+      std::cout << "Please push number 1 " << name[Pnum] << '\n';
       std::cout << "-> ";
       std::cin >> choice;
       if (choice == 1) {
@@ -223,7 +250,7 @@ bool GetPlayer(int *pos, int END, int array[][32], int times, char name[16], int
   array[Pnum][times] = *pos;
 
   if (*pos >= END){
-    std::cout << name << " Lose..." << '\n';
+    std::cout << name[Pnum] << " Lose..." << '\n';
     return true;
   }
 
@@ -231,12 +258,13 @@ bool GetPlayer(int *pos, int END, int array[][32], int times, char name[16], int
 }
 
 //AIの選択関数
-bool GetAI(int *pos, int END, int array[][32], int times, int dep){
+bool GetAI(int *pos, int END, int array[][32], int times, char name[][16], int depth[3], int Pnum){
 
   int one, two;
   int operate;
+  int dep = depth[Pnum];
 
-  std::cout << '\n' << "AI thiking now..." << '\n';
+  std::cout << '\n' << name[Pnum] << " thiking now..." << '\n';
 
   if (*pos < END-1) {
     //負けが確定していなければ先読み
@@ -264,12 +292,12 @@ bool GetAI(int *pos, int END, int array[][32], int times, int dep){
 
   //現状態を更新しログを保存
   *pos += operate;
-  array[2][times] = *pos;
+  array[Pnum][times] = *pos;
 
-  std::cout << "AI selected " << operate << '\n';
+  std::cout << name[Pnum] << " selected " << operate << '\n';
 
   if (*pos >= END){
-    std::cout << "AI Lose..." << '\n';
+    std::cout << name[Pnum] << " Lose..." << '\n';
     return true;
   }
   return false;
@@ -304,7 +332,7 @@ void GetOperate(int pos, int END, int dep){
 }
 
 //ゲームログの表示保存関数
-void GetMemory(int array[][32], int n, char P1[16], char P2[16]){
+void GetMemory(int array[][32], int n, char name[][16]){
 
   std::cout << '\n' << "##################";
   for (size_t i = 0; i < n; i++) {
@@ -315,11 +343,11 @@ void GetMemory(int array[][32], int n, char P1[16], char P2[16]){
   for (size_t i = 0; i < 3; i++) {
 
     if (i == 0) {
-      std::cout << std::left << std::setw(10) << P1 << "...";
+      std::cout << std::left << std::setw(10) << name[0] << "...";
     }else if (i == 1){
-      std::cout << std::left << std::setw(10) << P2 << "...";
+      std::cout << std::left << std::setw(10) << name[1] << "...";
     }else if (i == 2){
-      std::cout << std::left << std::setw(10) << "AI" << "...";
+      std::cout << std::left << std::setw(10) << name[2] << "...";
     }
 
     for (size_t j = 0; j < n+1; j++) {
