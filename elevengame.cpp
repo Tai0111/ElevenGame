@@ -57,6 +57,7 @@ int main(void){
   for (size_t i = style; i < 4; i++) {
     std::cout << "Please enter the name of COM_" << i-(style-1) << '\n' << ">> ";
     std::cin >> name[i-1];
+    std::cout << name[i-1] << '\n';
   }
 
   //ゲームの終了点の選択
@@ -66,7 +67,7 @@ int main(void){
   //COMのレベル選択
   for (size_t i = style; i < 4; i++) {
 
-    std::cout << '\n' << "Please choose the strength of the COM_" << i-(style-1) << '\n';
+    std::cout << '\n' << "Please choose the strength of the " << name[i-1] << '\n';
     std::cout << "1:weak | 2:mid | 3:strong " << '\n' << ">> ";
     std::cin >> level;
 
@@ -282,8 +283,14 @@ bool GetAI(int *pos, int END, int array[][32], int times, char name[][16], int d
     //勝率が高い方を選択同率の場合は2を選択
     if (one < two) {
       operate = 1;
-    }else{
+    }else if (one > two){
       operate = 2;
+    }else{
+      //どちらでも同じならランダムで決定
+      std::random_device rnd;     // 非決定的な乱数生成器を生成
+      std::mt19937 mt(rnd());     //  メルセンヌ・ツイスタの32ビット版、引数は初期シード値
+      std::uniform_int_distribution<> rand2(1, 2);        // [0, 5] 範囲の一様乱数
+      operate = rand2(mt);
     }
   }else{
     //負けが確定していたら1を選択
