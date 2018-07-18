@@ -11,10 +11,10 @@ using namespace std;
 //グローバル変数
 int CNT;
 
+//プレイヤー(キャラ)の情報格納用構造体
 struct MEMBER{
   char Name[16];  //プレイヤー名
   int  Type;      //0なら人,1ならCOM
-  int  Turn;      //プレイ順
   int  Strength;  //COMの強さ(=dep)
 };
 
@@ -35,11 +35,11 @@ int main(void){
   int order;                //プレイ順序
 
   MEMBER member[3] = {};    //MEMBER構造体の宣言
-  MEMBER temporary[1] = {};
-  MEMBER *p;
-  MEMBER *tmp;
-  p = member;
-  tmp = temporary;
+  MEMBER temporary[1] = {}; //入れ替えようの一時保管変数
+  MEMBER *p;    //操作用ポインタ
+  MEMBER *tmp;  //同上
+  p = member;       //ポインタ割り当て
+  tmp = temporary;  //同上
 
   std::cout << '\n' << "##GameSetting##" << '\n';
 
@@ -77,9 +77,10 @@ int main(void){
   std::cin >> endPoint;
 
   //COMのレベル選択
+  std::cout << '\n';
   for (size_t i = style; i < 4; i++) {
     while (1) {
-      std::cout << '\n' << "Please choose the strength of the " << (p+i-1)->Name << '\n';
+      std::cout << "Please choose the strength of the " << (p+i-1)->Name << '\n';
       std::cout << "1:weak | 2:mid | 3:strong " << '\n' << ">> ";
       std::cin >> level;
       if (level > 0 && level <4) {
@@ -171,7 +172,7 @@ int main(void){
   std::cout << '\n' << "##GameStart##" << '\n';
   while (1){
     //1番手
-    if (p->Type == 0) {
+    if (p->Type == 0) {  //構造体のType部で人かCOMか判断
       if ( GetPlayer(&pos, endPoint, memory, turn, member, 0) ){
         GetMemory(memory, turn, member);
         break;
@@ -258,10 +259,10 @@ bool GetPlayer(int *pos, int END, int array[][32], int times, MEMBER member[3], 
 //AIの選択関数
 bool GetAI(int *pos, int END, int array[][32], int times, MEMBER member[3], int Pnum){
 
-  int one, two;
-  int operate;
-  int judgePos;
-  int dep = member[Pnum].Strength;
+  int one, two;  //1,2それぞれの勝率を格納
+  int operate;   //最終的な決定
+  int judgePos;  //現在地ごとにどの数を探索するかの変数
+  int dep = member[Pnum].Strength;  //COMの強さごとに決められた探索深度
 
   std::cout << '\n' << member[Pnum].Name << " thiking now..." << '\n';
 
@@ -278,10 +279,10 @@ bool GetAI(int *pos, int END, int array[][32], int times, MEMBER member[3], int 
       GetOperate(*pos+i, END, dep, judgePos);
       if (i == 1){
         one = CNT;
-        std::cout << "one = " << one << '\n';
+        //std::cout << "one = " << one << '\n';
       }else if(i == 2){
         two = CNT;
-        std::cout << "two = " << two << '\n';
+        //std::cout << "two = " << two << '\n';
       }
     }
 
