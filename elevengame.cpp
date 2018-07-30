@@ -267,15 +267,15 @@ bool GetAI(int *pos, int END, int array[][32], int times, MEMBER member[3], int 
   std::cout << '\n' << member[Pnum].Name << " thiking now..." << '\n';
 
   if (*pos < END-1) {
+    if (*pos > END-4) {
+      judgePos = 0;
+    }else{
+      judgePos = 2;
+    }
     //負けが確定していなければ先読み
     for (size_t i = 1; i < 3; i++) {
       //AIが 1or2 を選んだ場合の勝ち数を計測
       CNT = 0;
-      if (*pos > END-4) {
-        judgePos = 0;
-      }else{
-        judgePos = 2;
-      }
       GetOperate(*pos+i, END, dep, judgePos);
       if (i == 1){
         one = CNT;
