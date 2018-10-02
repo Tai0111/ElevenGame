@@ -1,6 +1,6 @@
 #include <iostream>
-#include <string>
 #include <string.h>
+#include <string>
 #include <ios>
 #include <iomanip>
 #include <random>
@@ -40,7 +40,7 @@ int main(void){
   MEMBER *p;    //操作用ポインタ
   MEMBER *tmp;  //同上
   p = member;       //ポインタ割り当て
-  tmp = temporary;  //同上
+  </random></iomanip>tmp = temporary;  //同上
 
   std::cout << '\n' << "##GameSetting##" << '\n';
 
@@ -82,7 +82,7 @@ int main(void){
   for (size_t i = style; i < 4; i++) {
     while (1) {
       std::cout << "Please choose the strength of the " << (p+i-1)->Name << '\n';
-      std::cout << "1:weak | 2:mid | 3:strong " << '\n' << ">> ";
+      std::cout << "1:weak | 2:middle | 3:strong " << '\n' << ">> ";
       std::cin >> level;
       if (level > 0 && level <4) {
         break;
@@ -93,7 +93,7 @@ int main(void){
       //1手先読み
       (p+i-1)->Strength = 2;
     }else if (level == 2) {
-      //3手先読み
+      //4手先読み
       (p+i-1)->Strength = 8;
       //depが偶数になるよう調整
       if ((p+i-1)->Strength % 2 != 0) {
